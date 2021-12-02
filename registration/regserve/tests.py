@@ -1,7 +1,9 @@
 from django.http import response
 from django.test import TestCase, Client
 from .models import *
-
+import io
+from rest_framework.parsers import JSONParser
+from serializers import StudentSerializer
 
 # Create your tests here.
 class DataTest(TestCase):
@@ -25,6 +27,27 @@ class DataTest(TestCase):
              major="ENG",
              gpa="2.0",
              )
+        self.test_client = Client()
+
+    def test_student_api(self):
+        students_response = self.test_client.get('/regserve/data/students')
+        print(f'TEST_STUDENT_API: api response is: {students_response} and the status is {students_response.status_code}')
+        self.assertEqual(students_response.status_code, 200)
+        print(f'\nTEST_STUDENT_API: api response content is: {students_response.content}')
+        student_stream = io.BytesIO(students_response.content)
+        print(f'\nTEST_STUDENT_API: api response stream is: {student_stream}')
+        student_data = JSONParser().parse(student_stream)
+        first_student_data = student_data[0]
+        print(f'\nTEST_STUDENT_API: api response data is: {first_student_data} and its ID is {first_student_data["id"]}')
+        first_student_db = Student.objects.get(id=student_data['id'])
+        print(f'\nTEST_STUDENT_API: api response student object from db is: {first_student_db}')
+        
+        first_student_serializer = StudentSerializer(first_student_db, data=first_student_data)
+        print(f'\nTEST_STUDENT_API: api response student serializer is: {first_student_serializer}')
+        print(f'\nTEST_STUDENT_API: api response student serializer validity is: {first_student_serializer.is_valid()}')
+        print(f'\nTEST_STUDENT_API: api response student serializer valid data is: {first_student_serializer.validated_data}')
+        first_student_api = first_student_serializer.save()
+        print(f'\nTEST_STUDENT_API: api response student api object is: {first_student_api}')
 
     def test_student(self):
         student_list = Student.objects.all()
