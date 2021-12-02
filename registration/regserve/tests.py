@@ -48,6 +48,7 @@ class DataTest(TestCase):
         print(f'\nTEST_STUDENT_API: api response student serializer valid data is: {first_student_serializer.validated_data}')
         first_student_api = first_student_serializer.save()
         print(f'\nTEST_STUDENT_API: api response student api object is: {first_student_api}')
+        self.assertEqual(first_student_db, first_student_api)
 
     def test_student(self):
         student_list = Student.objects.all()
